@@ -1,0 +1,9 @@
+Revision history for Perl extension re::engine::Lua.
+
+0.01  Wed Dec 26 11:10:24 2007
+	- original version; created by h2xs 1.23 with options
+		-XA -n re::engine::Lua
+
+0.02  Sun Jul 20 00:30:00 2008
+	- first release (incomplete & buggy)
+

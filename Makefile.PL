@@ -13,6 +13,8 @@ version_from 'Lua.pm';
 build_requires 'Config'     => 0;
 build_requires 'XSLoader'   => 0;
 build_requires 'Test::More' => 0;
+build_requires 'Test::Warn' => 0;
+build_requires 'Test::Exception' => 0;
 
 #tests 't/*.t t/*/*.t';
 tests 't/*.t';

@@ -7,3 +7,6 @@ Revision history for Perl extension re::engine::Lua.
 0.02  Sun Jul 20 00:30:00 2008
 	- first release (incomplete & buggy)
 
+0.03  Tue Jul 22 12:30:00 2008
+	- add some prereq
+

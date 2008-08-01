@@ -1,5 +1,8 @@
 Revision history for Perl extension re::engine::Lua.
 
+0.05  Fri Aug  1 14:30:00 2008
+	- tar.gz generate on Linux
+
 0.04  Fri Aug  1 14:00:00 2008
 	- fix split (thanks to Avar)
 	- complete tests

@@ -19,6 +19,7 @@ MANIFEST
 README
 t/00-compile.t
 t/1-basic.t
+t/9-lua.t
 t/capture.t
 t/flags.t
 t/import.t
@@ -28,6 +29,7 @@ t/pod.t
 t/qr.t
 t/s.t
 t/split.t
+t/split-null.t
 t/subexp.t
 t/synopsis.t
 t/unimport.t

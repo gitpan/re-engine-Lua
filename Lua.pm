@@ -7,7 +7,7 @@ our @ISA = 'Regexp';
 
 BEGIN
 {
-    $VERSION = '0.03';
+    $VERSION = '0.04';
     XSLoader::load __PACKAGE__, $VERSION;
 }
 
@@ -203,10 +203,11 @@ stored as the first capture (and therefore has number 1); the character
 matching C<"."> is captured with number 2, and the part matching C<"%s*"> has
 number 3.
 
- As a special case, the empty capture C<()> captures the current string
- position (a number). For instance, if we apply the pattern C<"()aa()"> on the
- string C<"flaaap">, there will be two captures: 3 and 5.
- NOT SUPPORTED BY re::engine::Lua
+As a special case, the empty capture C<()> captures the current string
+position (a number). For instance, if we apply the pattern C<"()aa()"> on the
+string C<"flaaap">, there will be two captures: 3 and 5.
+ NOT SUPPORTED BY re::engine::Lua, the two captures are empty string,
+ the position are available in @- and @+ as usually.
 
 A pattern cannot contain embedded zeros. Use C<%z> instead.
 

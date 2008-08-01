@@ -4,6 +4,7 @@ use warnings;
 
 use Test::More tests => 1;
 use Test::Warn;
+use re::engine::Lua;
 
 TODO: {
 local $TODO = "warn from XS";

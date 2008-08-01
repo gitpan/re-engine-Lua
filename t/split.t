@@ -1,6 +1,5 @@
 use strict;
-#use Test::More tests => 17;
-use Test::More skip_all => "panic";
+use Test::More tests => 17;
 use re::engine::Lua;
 
 {

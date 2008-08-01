@@ -319,20 +319,42 @@ REGEXP *
 Lua_comp(pTHX_ const SV * const pattern, const U32 flags)
 {
     REGEXP *rx;
-    STRLEN plen;
-    char  *exp = SvPV((SV*)pattern, plen);
 
-    if (flags)
+    STRLEN plen;
+    char *exp = SvPV((SV*)pattern, plen);
+    U32 extflags = flags;
+
+    if (flags & ~(RXf_SPLIT)) {
         warn("flags not supported by re::engine::Lua\n");
+#ifdef DEBUG
+        warn("\t0x%08x\n", flags);
+#endif
+    }
 
 #ifdef DEBUG
     warn("Lua_comp |%s|\n", exp);
 #endif
 
+    /* C<split " ">, bypass the engine alltogether and act as perl does */
+    if (flags & RXf_SPLIT && plen == 1 && exp[0] == ' ')
+        extflags |= (RXf_SKIPWHITE|RXf_WHITE);
+
+    /* RXf_NULL - Have C<split //> split by characters */
+    if (plen == 0)
+        extflags |= RXf_NULL;
+
+    /* RXf_START_ONLY - Have C<split /^/> split on newlines */
+    else if (plen == 1 && exp[0] == '^')
+        extflags |= RXf_START_ONLY;
+
+    /* RXf_WHITE - Have C<split /%s+/> split on whitespace */
+    else if (plen == 3 && strnEQ("%s+", exp, 3))
+        extflags |= RXf_WHITE;
+
     Newxz(rx, 1, REGEXP);
 
     rx->refcnt   = 1;
-    rx->extflags = 0;
+    rx->extflags = extflags;
     rx->engine   = &lua_engine;
 
     /* Preserve a copy of the original pattern */
@@ -358,7 +380,7 @@ Lua_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
     MatchState ms;
     const char *pat = rx->precomp;
     int anchor = (*pat == '^') ? (pat++, 1) : 0;
-    const char *s1 = strbeg;
+    const char *s1 = stringarg;
 
 #ifdef DEBUG
     warn("Lua_exec |%s|%s|\n", stringarg, rx->precomp);
@@ -392,14 +414,14 @@ Lua_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
                 if (l == CAP_UNFINISHED)
                     luaL_error(ms.L, "unfinished capture");
                 if (l == CAP_POSITION)
-                    luaL_error(ms.L, "position capture unsupported");
+                    rx->offs[i+1].start = rx->offs[i+1].end = ms.capture[i].init - ms.src_init;
                 else {
                     rx->offs[i+1].start = ms.capture[i].init - ms.src_init;
                     rx->offs[i+1].end   = rx->offs[i+1].start + l;
-#ifdef DEBUG
-                    warn("capt %d [%d-%d]\n", i+1, rx->offs[i+1].start, rx->offs[i+1].end);
-#endif
                 }
+#ifdef DEBUG
+                warn("capt %d [%d-%d]\n", i+1, rx->offs[i+1].start, rx->offs[i+1].end);
+#endif
             }
 
             return 1;

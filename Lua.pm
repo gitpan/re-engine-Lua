@@ -7,7 +7,7 @@ our @ISA = 'Regexp';
 
 BEGIN
 {
-    $VERSION = '0.05';
+    $VERSION = '0.06';
     XSLoader::load __PACKAGE__, $VERSION;
 }
 
@@ -226,8 +226,8 @@ Copyright 2007-2008 FranE<ccedil>ois PERRAD.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Lua.
 
-The code fragment from original Lua 5.1.3 is under a MIT license.
-See the F<COPYRIGHT> file for details.
+The code fragment from original Lua 5.1.4 is under a MIT license,
+see L<http://www.lua.org/license.html#5>.
 
 =cut
 

@@ -1,23 +1,14 @@
-use inc::Module::Install;
+use 5.01000;
+use ExtUtils::MakeMaker;
 
-perl_version '5.010000';
-
-name 're-engine-Lua';
-author 'Francois PERRAD <francois.perrad@gadz.org>';
-
-abstract_from 'Lua.pm';
-license_from 'Lua.pm';
-version_from 'Lua.pm';
-
-# t/
-build_requires 'Config'     => 0;
-build_requires 'XSLoader'   => 0;
-build_requires 'Test::More' => 0;
-build_requires 'Test::Warn' => 0;
-build_requires 'Test::Exception' => 0;
-
-#tests 't/*.t t/*/*.t';
-tests 't/*.t';
-
-auto_install;
-WriteAll;
+WriteMakefile(
+    NAME          => 're::engine::Lua',
+    AUTHOR        => 'Francois PERRAD <francois.perrad@gadz.org>',
+    VERSION_FROM  => 'Lua.pm',
+    ABSTRACT_FROM => 'Lua.pm',
+    LICENSE       => 'MIT',
+    PREREQ_PM     => {
+            'Test::Exception'   => 0,
+            'Test::Warn'        => 0,
+    },
+);

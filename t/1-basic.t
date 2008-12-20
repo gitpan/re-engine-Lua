@@ -12,11 +12,11 @@ is($1, 'world');
 no re::engine::Lua;
 is(eval '"Hello, world" =~ /(?<=Moose|Mo), (world)/', undef);
 
-#SKIP:
-#{
-#    skip('no pprivate ?', 1);
+SKIP:
+{
+    skip('fork? on Windows', 1) if ($^O eq 'MSWin32');
 if (fork) {
     ok(1);
-} 
-#}
+}
+}
 

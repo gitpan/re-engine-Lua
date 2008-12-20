@@ -1,5 +1,9 @@
 Revision history for Perl extension re::engine::Lua.
 
+0.06  Sat Nov  8 15:30:00 2008
+	- remove Module/Install, use old fashion
+	- no behavior change
+
 0.05  Fri Aug  1 14:30:00 2008
 	- tar.gz generate on Linux
 

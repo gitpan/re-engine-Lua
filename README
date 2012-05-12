@@ -1,5 +1,5 @@
-re-engine-Lua version 0.06
-==========================
+re-engine-Lua
+=============
 
 INSTALLATION
 
@@ -16,11 +16,11 @@ Needs Perl 5.10 or later for pluggable regex support.
 
 HOMEPAGE
 
-This module is hosted at http://code.google.com/p/re-engine-lua/
+This module is hosted at https://github.com/fperrad/re-engine-lua
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2007-2008 by Francois PERRAD
+Copyright (C) 2007-2012 by Francois PERRAD
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Lua.

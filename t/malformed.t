@@ -9,5 +9,5 @@ throws_ok { "aaa" =~ /(.)(./ } '/unfinished capture/', 'unfinished capture';
 
 throws_ok { "aaa" =~ /a[0-/ } '/malformed pattern/', 'malformed pattern';
 
-throws_ok { "aaa" =~ /%b[/ } '/unbalanced pattern/', 'unbalanced pattern';
+throws_ok { "aaa" =~ /%b[/ } '/malformed pattern/', 'malformed pattern';
 

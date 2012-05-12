@@ -1,5 +1,9 @@
 Revision history for Perl extension re::engine::Lua.
 
+0.07  Sat May 12 19:30:00 2012
+	- compat with Perl 5.12 & 5.14
+	- follow Lua 5.2
+
 0.06  Sat Nov  8 15:30:00 2008
 	- remove Module/Install, use old fashion
 	- no behavior change

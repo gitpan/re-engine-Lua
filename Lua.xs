@@ -9,10 +9,17 @@ static int luaL_error(lua_State * st, const char * msg);
 
 #define LUA_QL(x)	"'" x "'"
 
-#define LUA_MAXCAPTURES		32
-
 
 /* code fragment from lstrlib.c */
+
+/*
+** maximum number of captures that a pattern can do during
+** pattern-matching. This limit is arbitrary.
+*/
+#if !defined(LUA_MAXCAPTURES)
+#define LUA_MAXCAPTURES		32
+#endif
+
 
 /* macro to `unsign' a character */
 #define uchar(c)        ((unsigned char)(c))
@@ -29,7 +36,8 @@ static int luaL_error(lua_State * st, const char * msg);
 
 typedef struct MatchState {
   const char *src_init;  /* init of source string */
-  const char *src_end;  /* end (`\0') of source string */
+  const char *src_end;  /* end ('\0') of source string */
+  const char *p_end;  /* end ('\0') of pattern */
   lua_State *L;
   int level;  /* total number of captures (finished or unfinished) */
   struct {
@@ -62,16 +70,16 @@ static int capture_to_close (MatchState *ms) {
 static const char *classend (MatchState *ms, const char *p) {
   switch (*p++) {
     case L_ESC: {
-      if (*p == '\0')
+      if (p == ms->p_end)
         luaL_error(ms->L, "malformed pattern (ends with " LUA_QL("%%") ")");
       return p+1;
     }
     case '[': {
       if (*p == '^') p++;
       do {  /* look for a `]' */
-        if (*p == '\0')
+        if (p == ms->p_end)
           luaL_error(ms->L, "malformed pattern (missing " LUA_QL("]") ")");
-        if (*(p++) == L_ESC && *p != '\0')
+        if (*(p++) == L_ESC && p < ms->p_end)
           p++;  /* skip escapes (e.g. `%]') */
       } while (*p != ']');
       return p+1;
@@ -89,13 +97,14 @@ static int match_class (int c, int cl) {
     case 'a' : res = isalpha(c); break;
     case 'c' : res = iscntrl(c); break;
     case 'd' : res = isdigit(c); break;
+    case 'g' : res = isgraph(c); break;
     case 'l' : res = islower(c); break;
     case 'p' : res = ispunct(c); break;
     case 's' : res = isspace(c); break;
     case 'u' : res = isupper(c); break;
     case 'w' : res = isalnum(c); break;
     case 'x' : res = isxdigit(c); break;
-    case 'z' : res = (c == 0); break;
+    case 'z' : res = (c == 0); break;  /* deprecated option */
     default: return (cl == c);
   }
   return (islower(cl) ? res : !res);
@@ -140,8 +149,9 @@ static const char *match (MatchState *ms, const char *s, const char *p);
 
 static const char *matchbalance (MatchState *ms, const char *s,
                                    const char *p) {
-  if (*p == 0 || *(p+1) == 0)
-    luaL_error(ms->L, "unbalanced pattern");
+  if (p >= ms->p_end - 1)
+    luaL_error(ms->L, "malformed pattern "
+                      "(missing arguments to " LUA_QL("%%b") ")");
   if (*s != *p) return NULL;
   else {
     int b = *p;
@@ -224,6 +234,8 @@ static const char *match_capture (MatchState *ms, const char *s, int l) {
 
 static const char *match (MatchState *ms, const char *s, const char *p) {
   init: /* using goto's to optimize tail recursion */
+  if (p == ms->p_end)  /* end of pattern? */
+    return s;  /* match succeeded */
   switch (*p) {
     case '(': {  /* start capture */
       if (*(p+1) == ')')  /* position capture? */
@@ -234,7 +246,12 @@ static const char *match (MatchState *ms, const char *s, const char *p) {
     case ')': {  /* end capture */
       return end_capture(ms, s, p+1);
     }
-    case L_ESC: {
+    case '$': {
+      if ((p+1) == ms->p_end)  /* is the `$' the last char in pattern? */
+        return (s == ms->src_end) ? s : NULL;  /* check end of string */
+      else goto dflt;
+    }
+    case L_ESC: {  /* escaped sequences not in the format class[*+?-]? */
       switch (*(p+1)) {
         case 'b': {  /* balanced string? */
           s = matchbalance(ms, s, p+2);
@@ -253,27 +270,19 @@ static const char *match (MatchState *ms, const char *s, const char *p) {
              !matchbracketclass(uchar(*s), p, ep-1)) return NULL;
           p=ep; goto init;  /* else return match(ms, s, ep); */
         }
-        default: {
-          if (isdigit(uchar(*(p+1)))) {  /* capture results (%0-%9)? */
-            s = match_capture(ms, s, uchar(*(p+1)));
-            if (s == NULL) return NULL;
-            p+=2; goto init;  /* else return match(ms, s, p+2) */
-          }
-          goto dflt;  /* case default */
+        case '0': case '1': case '2': case '3':
+        case '4': case '5': case '6': case '7':
+        case '8': case '9': {  /* capture results (%0-%9)? */
+          s = match_capture(ms, s, uchar(*(p+1)));
+          if (s == NULL) return NULL;
+          p+=2; goto init;  /* else return match(ms, s, p+2) */
         }
+        default: goto dflt;
       }
     }
-    case '\0': {  /* end of pattern */
-      return s;  /* match succeeded */
-    }
-    case '$': {
-      if (*(p+1) == '\0')  /* is the `$' the last char in pattern? */
-        return (s == ms->src_end) ? s : NULL;  /* check end of string */
-      else goto dflt;
-    }
-    default: dflt: {  /* it is a pattern item */
+    default: dflt: {  /* pattern class plus optional suffix */
       const char *ep = classend(ms, p);  /* points to what is next */
-      int m = s<ms->src_end && singlematch(uchar(*s), p, ep);
+      int m = s < ms->src_end && singlematch(uchar(*s), p, ep);
       switch (*ep) {
         case '?': {  /* optional */
           const char *res;
@@ -307,6 +316,12 @@ static const char *match (MatchState *ms, const char *s, const char *p) {
 
 #include "Lua.h"        /* re::engine glue */
 
+#if PERL_VERSION == 10
+#define RegSV(p) (p)
+#else
+#define RegSV(p) SvANY(p)
+#endif
+
 static int luaL_error(lua_State * st, const char * msg)
 {
     croak(msg);
@@ -319,10 +334,16 @@ REGEXP *
 Lua_comp(pTHX_ const SV * const pattern, const U32 flags)
 {
     REGEXP *rx;
+    regexp *re;
 
     STRLEN plen;
     char *exp = SvPV((SV*)pattern, plen);
     U32 extflags = flags;
+
+    SV * wrapped = newSVpvn("/", 1);
+    sv_catpvn(wrapped, exp, plen);
+    sv_catpvn(wrapped, "/", 1);
+    sv_2mortal(wrapped);
 
     if (flags & ~(RXf_SPLIT)) {
         warn("flags not supported by re::engine::Lua\n");
@@ -351,22 +372,35 @@ Lua_comp(pTHX_ const SV * const pattern, const U32 flags)
     else if (plen == 3 && strnEQ("%s+", exp, 3))
         extflags |= RXf_WHITE;
 
+#if PERL_VERSION == 10
     Newxz(rx, 1, REGEXP);
+    re = RegSV(rx);
 
-    rx->refcnt   = 1;
-    rx->extflags = extflags;
-    rx->engine   = &lua_engine;
+    re->refcnt   = 1;
+    re->extflags = extflags;
+    re->engine   = &lua_engine;
 
     /* Preserve a copy of the original pattern */
-    rx->prelen = (I32)plen;
-    rx->precomp = SAVEPVN(exp, plen);
+    re->prelen = (I32)plen;
+    re->precomp = SAVEPVN(exp, plen);
 
     /* qr// stringification */
-    rx->wraplen = rx->prelen;
-    rx->wrapped = (char *)rx->precomp;
+    re->wraplen = SvCUR(wrapped);
+    re->wrapped = savepvn(SvPVX(wrapped), SvCUR(wrapped));
+#else
+    rx = (REGEXP*) newSV_type(SVt_REGEXP);
+    re = RegSV(rx);
 
-    /* No private object */
-    rx->pprivate = NULL;
+    re->extflags = extflags;
+    re->engine   = &lua_engine;
+
+    /* qr// stringification */
+    RX_WRAPPED(rx) = savepvn(SvPVX(wrapped), SvCUR(wrapped));
+    RX_WRAPLEN(rx) = SvCUR(wrapped);
+#endif
+
+    re->pprivate = pattern;
+    SvREFCNT_inc(pattern);
 
     /* return the regexp */
     return rx;
@@ -377,17 +411,24 @@ Lua_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
           char *strbeg, I32 minend, SV * sv,
           void *data, U32 flags)
 {
+    regexp * re = RegSV(rx);
+    STRLEN plen;
+    const char *pat = SvPV((SV*)re->pprivate, plen);
     MatchState ms;
-    const char *pat = rx->precomp;
-    int anchor = (*pat == '^') ? (pat++, 1) : 0;
+    int anchor = (*pat == '^');
+    if (anchor) {
+        pat++;
+        plen--;
+    }
     const char *s1 = stringarg;
 
 #ifdef DEBUG
-    warn("Lua_exec |%s|%s|\n", stringarg, rx->precomp);
+    warn("Lua_exec |%s|%s|\n", stringarg, pat);
 #endif
 
     ms.src_init = strbeg;
     ms.src_end  = strend;
+    ms.p_end    = pat + plen;
 
     do {
         const char *res;
@@ -396,17 +437,17 @@ Lua_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
         if (res != NULL) {
             unsigned i;
 
-            rx->subbeg = strbeg;
-            rx->sublen = strend - strbeg;
+            re->subbeg = strbeg;
+            re->sublen = strend - strbeg;
 
-            rx->nparens = rx->lastparen = rx->lastcloseparen = ms.level;
-            Newxz(rx->offs, ms.level + 1, regexp_paren_pair);
+            re->nparens = re->lastparen = re->lastcloseparen = ms.level;
+            Newxz(re->offs, ms.level + 1, regexp_paren_pair);
 
-            rx->offs[0].start = s1 - ms.src_init;
-            rx->offs[0].end   = res - ms.src_init;
+            re->offs[0].start = s1 - ms.src_init;
+            re->offs[0].end   = res - ms.src_init;
 
 #ifdef DEBUG
-            warn("match (%d) [%d-%d]\n", ms.level, rx->offs[0].start, rx->offs[0].end);
+            warn("match (%d) [%d-%d]\n", ms.level, re->offs[0].start, re->offs[0].end);
 #endif
 
             for (i = 0; i < ms.level; i++) {
@@ -414,13 +455,13 @@ Lua_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
                 if (l == CAP_UNFINISHED)
                     luaL_error(ms.L, "unfinished capture");
                 if (l == CAP_POSITION)
-                    rx->offs[i+1].start = rx->offs[i+1].end = ms.capture[i].init - ms.src_init;
+                    re->offs[i+1].start = re->offs[i+1].end = ms.capture[i].init - ms.src_init;
                 else {
-                    rx->offs[i+1].start = ms.capture[i].init - ms.src_init;
-                    rx->offs[i+1].end   = rx->offs[i+1].start + l;
+                    re->offs[i+1].start = ms.capture[i].init - ms.src_init;
+                    re->offs[i+1].end   = re->offs[i+1].start + l;
                 }
 #ifdef DEBUG
-                warn("capt %d [%d-%d]\n", i+1, rx->offs[i+1].start, rx->offs[i+1].end);
+                warn("capt %d [%d-%d]\n", i+1, re->offs[i+1].start, re->offs[i+1].end);
 #endif
             }
 
@@ -458,14 +499,16 @@ Lua_checkstr(pTHX_ REGEXP * const rx)
 void
 Lua_free(pTHX_ REGEXP * const rx)
 {
-    /* nothing */
+    regexp * re = RegSV(rx);
+    SvREFCNT_dec(re->pprivate);
 }
 
 void *
 Lua_dupe(pTHX_ REGEXP * const rx, CLONE_PARAMS *param)
 {
     PERL_UNUSED_ARG(param);
-    return rx->pprivate;
+    regexp * re = RegSV(rx);
+    return re->pprivate;
 }
 
 SV *

@@ -7,7 +7,7 @@ our @ISA = 'Regexp';
 
 BEGIN
 {
-    $VERSION = '0.06';
+    $VERSION = '0.07';
     XSLoader::load __PACKAGE__, $VERSION;
 }
 
@@ -40,10 +40,10 @@ re::engine::Lua - Lua regular expression engine
 
 =head1 DESCRIPTION
 
-Replaces perl's regex engine in a given lexical scope with the Lua 5.1 one.
+Replaces perl's regex engine in a given lexical scope with the Lua 5.2 one.
 
-See "Lua 5.1 Reference Manual", section 5.4.1 "Patterns",
-L<http://www.lua.org/manual/5.1/manual.html#5.4.1>.
+See "Lua 5.2 Reference Manual", section 6.4.1 "Patterns",
+L<http://www.lua.org/manual/5.2/manual.html#6.4.1>.
 
 =head2 Character Class:
 
@@ -73,6 +73,10 @@ represents all control characters.
 
 represents all digits.
 
+=item B<%g>
+
+represents all printable characters except space.
+
 =item B<%l>
 
 represents all lowercase letters.
@@ -97,7 +101,7 @@ represents all alphanumeric characters.
 
 represents all hexadecimal digits.
 
-=item B<%z>
+=item B<%z> DEPRECATED
 
 represents the character with representation 0.
 
@@ -111,10 +115,10 @@ represent itself in a pattern.
 =item B<[set]>
 
 represents the class which is the union of all characters in I<set>. A range of
-characters may be specified by separating the end characters of the range with
-a C<'-'>. All classes C<%x> described above may also be used as components in
-I<set>. All other characters in I<set> represent themselves. For example,
-C<[%w_]> (or C<[_%w]>) represents all alphanumeric characters plus the
+characters can be specified by separating the end characters of the range, in
+ascending order, with a C<'-'>. All classes C<%x> described above can also be
+used as components in I<set>. All other characters in I<set> represent themselves.
+For example, C<[%w_]> (or C<[_%w]>) represents all alphanumeric characters plus the
 underscore, C<[0-7]> represents the octal digits, and C<[0-7%l%-]> represents
 the octal digits plus the lowercase letters plus the C<'-'> character.
 
@@ -137,7 +141,7 @@ C<%l>.
 
 =head2 Pattern Item:
 
-A I<pattern item> may be
+A I<pattern item> can be
 
 =over 4
 
@@ -182,19 +186,27 @@ right, counting I<+1> for an I<x> and I<-1> for a I<y>, the ending I<y> is the
 first I<y> where the count reaches 0. For instance, the item C<%b()> matches
 expressions with balanced parentheses.
 
+=item *
+
+C<%f[set]>, a I<frontier pattern>; such item matches an empty string at any
+position such that the next character belongs to I<set> and the previous
+character does not belong to I<set>. The set I<set> is interpreted as
+previously described. The beginning and the end of the subject are handled
+as if they were the character '\0'.
+
 =back
 
 =head2 Pattern:
 
-A I<pattern> is a sequence of pattern items. A C<'^'> at the beginning of a
-pattern anchors the match at the beginning of the subject string. A C<'$'> at
-the end of a pattern anchors the match at the end of the subject string. At
-other positions, C<'^'> and C<'$'> have no special meaning and represent
+A I<pattern> is a sequence of pattern items. A caret C<'^'> at the beginning
+of a pattern anchors the match at the beginning of the subject string.
+A C<'$'> at the end of a pattern anchors the match at the end of the subject string.
+At other positions, C<'^'> and C<'$'> have no special meaning and represent
 themselves.
 
 =head2 Captures:
 
-A pattern may contain sub-patterns enclosed in parentheses; they describe
+A pattern can contain sub-patterns enclosed in parentheses; they describe
 I<captures>. When a match succeeds, the substrings of the subject string that
 match captures are stored (I<captured>) for future use. Captures are numbered
 according to their left parentheses. For instance, in the pattern
@@ -209,24 +221,22 @@ string C<"flaaap">, there will be two captures: 3 and 5.
  NOT SUPPORTED BY re::engine::Lua, the two captures are empty string,
  the position are available in @- and @+ as usually.
 
-A pattern cannot contain embedded zeros. Use C<%z> instead.
-
 =head1 AUTHORS
 
 FranE<ccedil>ois PERRAD <francois.perrad@gadz.org>
 
 =head1 HOMEPAGE
 
-The development is hosted at L<http://code.google.com/p/re-engine-lua/>.
+The development is hosted at L<https://github.com/fperrad/re-engine-lua>.
 
 =head1 COPYRIGHT
 
-Copyright 2007-2008 FranE<ccedil>ois PERRAD.
+Copyright 2007-2012 FranE<ccedil>ois PERRAD.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Lua.
 
-The code fragment from original Lua 5.1.4 is under a MIT license,
+The code fragment from original Lua 5.2.0 is under a MIT license,
 see L<http://www.lua.org/license.html#5>.
 
 =cut

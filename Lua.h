@@ -2,7 +2,7 @@
 
 START_EXTERN_C
 EXTERN_C const regexp_engine lua_engine;
-EXTERN_C REGEXP * Lua_comp(pTHX_ const SV const *, const U32);
+EXTERN_C REGEXP * Lua_comp(pTHX_ SV * const, U32);
 EXTERN_C I32      Lua_exec(pTHX_ REGEXP * const, char *, char *,
                               char *, I32, SV *, void *, U32);
 EXTERN_C char *   Lua_intuit(pTHX_ REGEXP * const, SV *, char *,

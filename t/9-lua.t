@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 50;
+use Test::More tests => 58;
 use re::engine::Lua;
 
 ok('aaa' =~ /a/);
@@ -10,6 +10,7 @@ ok('aba' !~ /^b/);
 ok('aaa' =~ /%w/);
 ok('aaa' =~ /%U/);
 ok('aaa' !~ /%u/);
+ok('aaa' =~ /%g/);
 
 ok('aaa' =~ /b?a/);
 is($&, 'a');
@@ -65,6 +66,18 @@ is($&, '-');
 ok('a^d' =~ /a^d/);
 is($&, 'a^d');
 
-ok('a(bcde)f' =~ /a%b()f/);
+ok("a\0f" =~ /a%zf/, "deprecated");
+is($&, "a\0f");
+
+my $nul = chr 0;
+ok("a\0f" =~ /a${nul}f/);
+is($&, "a\0f");
+
+ok('a(bcde)f' =~ /a%b()f/, "balanced");
 is($&, 'a(bcde)f');
+
+ok('abacdef' =~ /%f[^ab]c/, "frontier");
+is($&, 'c');
+
+ok('abacdef' !~ /%f[^ab]d/);
 

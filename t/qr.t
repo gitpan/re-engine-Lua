@@ -1,12 +1,5 @@
-use Test::More;
+use Test::More tests => 2;
 use re::engine::Lua;
-
-if ($^V le 'v5.10.1') {
-    plan( tests => 2 );
-}
-else {
-    plan( skip_all => "segfault" );
-}
 
 my $re = qr/aoeu/;
 

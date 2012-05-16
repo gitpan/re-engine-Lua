@@ -316,6 +316,11 @@ static const char *match (MatchState *ms, const char *s, const char *p) {
 
 #include "Lua.h"        /* re::engine glue */
 
+#ifndef RX_WRAPPED
+#define RX_WRAPPED(rx) (rx)->wrapped
+#define RX_WRAPLEN(rx) (rx)->wraplen
+#endif
+
 #if PERL_VERSION == 10
 #define RegSV(p) (p)
 #else
@@ -331,7 +336,7 @@ static int luaL_error(lua_State * st, const char * msg)
 /* lua_engine methods */
 
 REGEXP *
-Lua_comp(pTHX_ const SV * const pattern, const U32 flags)
+Lua_comp(pTHX_ SV * const pattern, U32 flags)
 {
     REGEXP *rx;
     regexp *re;
@@ -341,8 +346,6 @@ Lua_comp(pTHX_ const SV * const pattern, const U32 flags)
     U32 extflags = flags;
 
     SV * wrapped = newSVpvn("/", 1);
-    sv_catpvn(wrapped, exp, plen);
-    sv_catpvn(wrapped, "/", 1);
     sv_2mortal(wrapped);
 
     if (flags & ~(RXf_SPLIT)) {
@@ -375,29 +378,30 @@ Lua_comp(pTHX_ const SV * const pattern, const U32 flags)
 #if PERL_VERSION == 10
     Newxz(rx, 1, REGEXP);
     re = RegSV(rx);
-
     re->refcnt   = 1;
-    re->extflags = extflags;
-    re->engine   = &lua_engine;
 
     /* Preserve a copy of the original pattern */
     re->prelen = (I32)plen;
     re->precomp = SAVEPVN(exp, plen);
-
-    /* qr// stringification */
-    re->wraplen = SvCUR(wrapped);
-    re->wrapped = savepvn(SvPVX(wrapped), SvCUR(wrapped));
 #else
     rx = (REGEXP*) newSV_type(SVt_REGEXP);
     re = RegSV(rx);
+
+    re->pre_prefix = SvCUR(wrapped);
+
+    /* workaround for segfault in Perl_reg_temp_copy */
+    re->nparens = re->lastparen = re->lastcloseparen = 0;
+    Newxz(re->offs, 1, regexp_paren_pair);
+#endif
 
     re->extflags = extflags;
     re->engine   = &lua_engine;
 
     /* qr// stringification */
+    sv_catpvn(wrapped, exp, plen);
+    sv_catpvn(wrapped, "/", 1);
     RX_WRAPPED(rx) = savepvn(SvPVX(wrapped), SvCUR(wrapped));
     RX_WRAPLEN(rx) = SvCUR(wrapped);
-#endif
 
     re->pprivate = pattern;
     SvREFCNT_inc(pattern);
@@ -415,12 +419,13 @@ Lua_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
     STRLEN plen;
     const char *pat = SvPV((SV*)re->pprivate, plen);
     MatchState ms;
+    const char *s1 = stringarg;
+
     int anchor = (*pat == '^');
     if (anchor) {
         pat++;
         plen--;
     }
-    const char *s1 = stringarg;
 
 #ifdef DEBUG
     warn("Lua_exec |%s|%s|\n", stringarg, pat);

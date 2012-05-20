@@ -1,25 +1,26 @@
 package re::engine::Lua;
-use 5.010000;
-use XSLoader ();
+use strict;
+use warnings;
+use 5.010;
+use XSLoader;
 
-# All engines should subclass the core Regexp package
-our @ISA = 'Regexp';
+BEGIN {
+    # All engines should subclass the core Regexp package
+    our @ISA = qw( Regexp );
 
-BEGIN
-{
-    $VERSION = '0.08';
+    our $VERSION = '0.09';
     XSLoader::load __PACKAGE__, $VERSION;
 }
 
-sub import
-{
+sub import {
     $^H{regcomp} = ENGINE;
+    return;
 }
 
-sub unimport
-{
+sub unimport {
     delete $^H{regcomp}
-        if $^H{regcomp} == ENGINE;
+      if $^H{regcomp} == ENGINE;
+    return;
 }
 
 1;
@@ -221,7 +222,7 @@ string C<"flaaap">, there will be two captures: 3 and 5.
  NOT SUPPORTED BY re::engine::Lua, the two captures are empty string,
  the position are available in @- and @+ as usually.
 
-=head1 AUTHORS
+=head1 AUTHOR
 
 FranE<ccedil>ois PERRAD <francois.perrad@gadz.org>
 
@@ -229,7 +230,7 @@ FranE<ccedil>ois PERRAD <francois.perrad@gadz.org>
 
 The development is hosted at L<https://github.com/fperrad/re-engine-lua>.
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright 2007-2012 FranE<ccedil>ois PERRAD.
 

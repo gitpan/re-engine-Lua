@@ -1,5 +1,8 @@
 Revision history for Perl extension re::engine::Lua.
 
+0.09  Sun May 20 09:30:00 2012
+	- fix build on MSWin32
+
 0.08  Wed May 16 17:30:00 2012
 	- fix qr// with Perl 5.12 & 5.14
 

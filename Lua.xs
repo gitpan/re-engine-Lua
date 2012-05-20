@@ -392,6 +392,7 @@ Lua_comp(pTHX_ SV * const pattern, U32 flags)
     /* workaround for segfault in Perl_reg_temp_copy */
     re->nparens = re->lastparen = re->lastcloseparen = 0;
     Newxz(re->offs, 1, regexp_paren_pair);
+    /* see https://rt.perl.org/rt3//Public/Bug/Display.html?id=112962 */
 #endif
 
     re->extflags = extflags;
@@ -504,16 +505,14 @@ Lua_checkstr(pTHX_ REGEXP * const rx)
 void
 Lua_free(pTHX_ REGEXP * const rx)
 {
-    regexp * re = RegSV(rx);
-    SvREFCNT_dec(re->pprivate);
+    SvREFCNT_dec(RegSV(rx)->pprivate);
 }
 
 void *
 Lua_dupe(pTHX_ REGEXP * const rx, CLONE_PARAMS *param)
 {
     PERL_UNUSED_ARG(param);
-    regexp * re = RegSV(rx);
-    return re->pprivate;
+    return RegSV(rx)->pprivate;
 }
 
 SV *

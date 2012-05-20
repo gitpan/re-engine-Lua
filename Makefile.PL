@@ -1,4 +1,4 @@
-use 5.01000;
+use 5.010;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
@@ -8,7 +8,9 @@ WriteMakefile(
     ABSTRACT_FROM => 'Lua.pm',
     LICENSE       => 'MIT',
     PREREQ_PM     => {
-            'Test::Exception'   => 0,
-            'Test::Warn'        => 0,
+        'Test::Exception' => 0,
+        'Test::Warn'      => 0,
+        'XSLoader'        => 0,
     },
+    MIN_PERL_VERSION => 5.010,
 );

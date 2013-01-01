@@ -1,5 +1,8 @@
 Revision history for Perl extension re::engine::Lua.
 
+0.10  Tue Jan  1 13:30:00 2013
+	- workaround unneeded with Perl 5.17 (RT #112962 fixed)
+
 0.09  Sun May 20 09:30:00 2012
 	- fix build on MSWin32
 

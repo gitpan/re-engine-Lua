@@ -389,10 +389,12 @@ Lua_comp(pTHX_ SV * const pattern, U32 flags)
 
     re->pre_prefix = SvCUR(wrapped);
 
+#if PERL_VERSION < 17
     /* workaround for segfault in Perl_reg_temp_copy */
     re->nparens = re->lastparen = re->lastcloseparen = 0;
     Newxz(re->offs, 1, regexp_paren_pair);
     /* see https://rt.perl.org/rt3//Public/Bug/Display.html?id=112962 */
+#endif
 #endif
 
     re->extflags = extflags;

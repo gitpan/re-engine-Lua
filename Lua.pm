@@ -8,7 +8,7 @@ BEGIN {
     # All engines should subclass the core Regexp package
     our @ISA = qw( Regexp );
 
-    our $VERSION = '0.10';
+    our $VERSION = '0.11';
     XSLoader::load __PACKAGE__, $VERSION;
 }
 

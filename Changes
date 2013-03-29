@@ -1,5 +1,8 @@
 Revision history for Perl extension re::engine::Lua.
 
+0.12  Fri Mar 29 09:30:00 2013
+	- fix uninitialized matchdepth
+
 0.11  Wed Mar 27 17:30:00 2013
 	- aligned with Lua 5.2.2
 

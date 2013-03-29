@@ -475,9 +475,10 @@ Lua_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
     warn("Lua_exec |%s|%s|\n", stringarg, pat);
 #endif
 
-    ms.src_init = strbeg;
-    ms.src_end  = strend;
-    ms.p_end    = pat + plen;
+    ms.matchdepth = MAXCCALLS;
+    ms.src_init   = strbeg;
+    ms.src_end    = strend;
+    ms.p_end      = pat + plen;
 
     do {
         const char *res;

@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               re-engine-Lua
-version:            0.12
+version:            0.13
 abstract:           Lua regular expression engine
 author:
     - Francois PERRAD <francois.perrad@gadz.org>
@@ -11,10 +11,8 @@ configure_requires:
 build_requires:
     ExtUtils::MakeMaker:  0
 requires:
-    perl:             5.01
-    Test::Exception:  0
-    Test::Warn:       0
-    XSLoader:         0
+    perl:      5.01
+    XSLoader:  0
 no_index:
     directory:
         - t

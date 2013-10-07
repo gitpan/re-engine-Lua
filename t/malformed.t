@@ -1,7 +1,12 @@
 use strict;
+use warnings;
 
-use Test::More tests => 3;
-use Test::Exception;
+use Test::More;
+BEGIN {
+    eval "use Test::Exception";
+    plan skip_all => "Test::Exception needed" if $@;
+}
+plan tests => 3;
 
 use re::engine::Lua;
 

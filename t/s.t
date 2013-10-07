@@ -2,8 +2,6 @@ use strict;
 use Test::More tests => 10;
 use re::engine::Lua;
 
-my $_;
-
 $_ = "ab";
 s/a//;
 is($_, 'b', q(s/a//; 'ab' => 'b'));

@@ -2,8 +2,13 @@
 use strict;
 use warnings;
 
-use Test::More tests => 1;
-use Test::Warn;
+use Test::More;
+BEGIN {
+    eval "use Test::Warn";
+    plan skip_all => "Test::Warn needed" if $@;
+}
+plan tests => 1;
+
 use re::engine::Lua;
 
 TODO: {

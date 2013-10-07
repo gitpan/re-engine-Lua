@@ -8,7 +8,7 @@ BEGIN {
     # All engines should subclass the core Regexp package
     our @ISA = qw( Regexp );
 
-    our $VERSION = '0.12';
+    our $VERSION = '0.13';
     XSLoader::load __PACKAGE__, $VERSION;
 }
 
@@ -237,8 +237,8 @@ Copyright 2007-2013 FranE<ccedil>ois PERRAD.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Lua.
 
-The code fragment from original Lua 5.2.0 is under a MIT license,
-see L<http://www.lua.org/license.html#5>.
+The code fragment from original Lua 5.2.2 is under a MIT license,
+see L<http://www.lua.org/license.html>.
 
 =cut
 

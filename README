@@ -18,6 +18,8 @@ HOMEPAGE
 
 This module is hosted at https://github.com/fperrad/re-engine-lua
 
+Continous Integration with Travis at https://travis-ci.org/fperrad/re-engine-lua
+
 COPYRIGHT AND LICENCE
 
 Copyright (C) 2007-2013 by Francois PERRAD

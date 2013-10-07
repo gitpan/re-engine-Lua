@@ -1,5 +1,10 @@
 Revision history for Perl extension re::engine::Lua.
 
+0.13  Mon Oct  7 14:30:00 2013
+	- remove lexical $_ in t/
+	- Test::Warn & Test::Exception become optional
+	- add Travis support
+
 0.12  Fri Mar 29 09:30:00 2013
 	- fix uninitialized matchdepth
 
